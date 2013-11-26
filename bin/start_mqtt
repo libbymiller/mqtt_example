@@ -5,13 +5,15 @@ require 'mqtt'
 require 'pp'
 
 
-messages = {}
-nowplaying = {}
-nowp_counter = {}
+
 
 # assume only two for each network before a change
+def start_mqtt
+ messages = {}
+ nowplaying = {}
+ nowp_counter = {}
 
-MQTT::Client.connect('test.mosquitto.org') do |c|
+ MQTT::Client.connect('test.mosquitto.org') do |c|
   # If you pass a block to the get method, then it will loop
   c.get('bbc/livetext/#') do |topic,message|
 #  c.get('bbc/livetext/radio4') do |topic,message|
@@ -95,5 +97,19 @@ MQTT::Client.connect('test.mosquitto.org') do |c|
 
     end
   end
+ end
 end
 
+# create directory if it doesn't exist
+
+f = File.join(File.join(File.dirname(__FILE__), '..'), "mqtt_data")
+begin
+  if (!File.exists?(f))
+    puts "Attempting to create directory #{f}"
+    Dir.mkdir(f)
+  end
+  start_mqtt
+rescue Exception=>e
+  puts e
+  puts "Directory #{f} can't be created? stopping"
+end
